@@ -159,15 +159,11 @@ def open_with_retry(request: urllib.request.Request):
 
 def extract_and_check(target: CheckTarget) -> CheckResult:
     start = datetime.now(timezone.utc)
-    # Shory blocks common cloud-hosting IPs, so use a read-only availability proxy.
-    check_url = f"https://r.jina.ai/{target.url}"
-    request = urllib.request.Request(
-        check_url,
-        headers={
-            "User-Agent": "Mozilla/5.0 (compatible; ShoryWebsiteHealthBot/1.0)",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        },
-    )
+    check_urls = [
+        target.url,
+        # Some cloud-hosted runners can be blocked, so keep a read-only fallback.
+        f"https://r.jina.ai/{target.url}",
+    ]
 
     status_code: int | None = None
     final_url = target.url
@@ -179,32 +175,45 @@ def extract_and_check(target: CheckTarget) -> CheckResult:
     has_gtm = False
     has_ga4 = False
 
-    try:
-        with open_with_retry(request) as response:
-            status_code = response.getcode()
-            final_url = target.url
-            body = response.read()
-            response_time_ms = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
-            charset = response.headers.get_content_charset() or "utf-8"
-            page_html = body.decode(charset, errors="replace")
-    except urllib.error.HTTPError as exc:
-        status_code = exc.code
-        response_time_ms = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
+    for check_url in check_urls:
+        request = urllib.request.Request(
+            check_url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (compatible; ShoryWebsiteHealthBot/1.0)",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            },
+        )
+
         try:
-            body = exc.read()
-            charset = exc.headers.get_content_charset() or "utf-8"
-            page_html = body.decode(charset, errors="replace")
-            final_url = target.url
-        except Exception:
-            page_html = ""
-        issues.append(f"HTTP status {status_code}")
-    except urllib.error.URLError as exc:
-        response_time_ms = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
-        reason = getattr(exc, "reason", exc)
-        issues.append(f"Request failed: {reason}")
-    except Exception as exc:  # pragma: no cover - defensive
-        response_time_ms = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
-        issues.append(f"Unexpected error: {exc}")
+            with open_with_retry(request) as response:
+                status_code = response.getcode()
+                final_url = response.geturl() if check_url == target.url else target.url
+                body = response.read()
+                response_time_ms = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
+                charset = response.headers.get_content_charset() or "utf-8"
+                page_html = body.decode(charset, errors="replace")
+                issues = []
+                break
+        except urllib.error.HTTPError as exc:
+            status_code = exc.code
+            response_time_ms = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
+            try:
+                body = exc.read()
+                charset = exc.headers.get_content_charset() or "utf-8"
+                page_html = body.decode(charset, errors="replace")
+                final_url = target.url
+            except Exception:
+                page_html = ""
+            issues = [f"HTTP status {status_code}"]
+            if status_code == 404:
+                break
+        except urllib.error.URLError as exc:
+            response_time_ms = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
+            reason = getattr(exc, "reason", exc)
+            issues = [f"Request failed: {reason}"]
+        except Exception as exc:  # pragma: no cover - defensive
+            response_time_ms = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
+            issues = [f"Unexpected error: {exc}"]
 
     if page_html:
         parser = PageParser()
