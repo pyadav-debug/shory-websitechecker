@@ -157,8 +157,16 @@
       count.textContent = 'Checking partner pages...';
       lastChecked.textContent = 'Checking now';
       try {
-        const response = await fetch(`/api/check?ts=${Date.now()}`, { cache: 'no-store' });
-        if (!response.ok) throw new Error('The check could not be completed');
+        let response;
+        try {
+          response = await fetch(`/api/check?ts=${Date.now()}`, { cache: 'no-store' });
+          if (!response.ok) throw new Error('The check could not be completed');
+        } catch (liveError) {
+          // No serverless function here (e.g. GitHub Pages) - fall back to
+          // the last periodic check committed by the GitHub Actions workflow.
+          response = await fetch(`status.json?ts=${Date.now()}`, { cache: 'no-store' });
+          if (!response.ok) throw liveError;
+        }
         render(await response.json());
       } catch (error) {
         count.textContent = 'Unable to check partner pages';
