@@ -10,18 +10,18 @@ import tomllib
 import urllib.error
 import urllib.request
 
-from monitoring.website_health import (
-    UAE_TZ,
-    load_config,
-    open_with_retry,
-    parse_jina_target_status,
-)
+from monitoring.website_health import UAE_TZ, load_config, parse_jina_target_status
 
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "monitoring" / "website_health_config.toml"
 MAX_CHECK_ATTEMPTS = 2
 CHECK_RETRY_DELAY_SECONDS = 2
+# A single request's timeout, kept short and deliberately NOT retried inside
+# itself (unlike open_with_retry): the outer retry above already covers
+# transient failures, and nesting two retry loops multiplied worst-case
+# latency past Vercel's function execution limit in production.
+REQUEST_TIMEOUT_SECONDS = 15
 
 
 def load_upcoming_slots():
@@ -58,7 +58,7 @@ def _check_once(target):
     status_code = None
     issues = []
     try:
-        with open_with_retry(request) as response:
+        with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT_SECONDS) as response:
             status_code = response.getcode()
             # r.jina.ai always returns 200 for its own fetch even when the
             # underlying target page errored; the real failure only shows up
