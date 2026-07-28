@@ -19,6 +19,7 @@
       --bad: #c54b43;
       --bad-bg: #fde9e7;
       --neutral: #69758a;
+      --neutral-bg: #edf1f6;
       --shadow: 0 22px 70px rgba(42, 58, 88, .13);
     }
     * { box-sizing: border-box; }
@@ -65,6 +66,7 @@
     .tag::before { width: 7px; height: 7px; border-radius: 50%; background: currentColor; content: ""; }
     .healthy { color: var(--good); background: var(--good-bg); }
     .attention { color: var(--bad); background: var(--bad-bg); }
+    .coming { color: var(--neutral); background: var(--neutral-bg); }
     .yes { color: var(--good); font-weight: 750; }
     .no { color: var(--bad); font-weight: 750; }
     .empty { padding: 58px 22px; color: var(--muted); text-align: center; }
@@ -119,24 +121,47 @@
     const results = document.querySelector('#results');
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
 
-    function render(data) {
-      const checks = data.results || [];
-      const healthy = checks.filter((item) => item.ok).length;
-      count.textContent = `${healthy} of ${checks.length} partners healthy`;
-      lastChecked.textContent = `Last checked ${data.checked_at_uae || data.checked_at_utc || 'just now'}`;
-      results.innerHTML = checks.map((item) => `
+    function pendingRow(item) {
+      return `
+        <tr>
+          <td class="partner">${escapeHtml(item.name)}</td>
+          <td class="muted">To be added soon</td>
+          <td class="muted">-</td>
+          <td class="muted">-</td>
+          <td class="muted">-</td>
+          <td class="muted">-</td>
+          <td class="muted">-</td>
+          <td class="muted">-</td>
+          <td><span class="tag coming">Coming soon</span></td>
+        </tr>
+      `;
+    }
+
+    function checkedRow(item) {
+      return `
         <tr>
           <td class="partner">${escapeHtml(item.name)}</td>
           <td><a class="url" href="${escapeHtml(item.final_url || item.url)}" target="_blank" rel="noreferrer" title="${escapeHtml(item.url)}">${escapeHtml(item.url)}</a></td>
-          <td>${item.status_code ?? '—'}</td>
-          <td>${item.response_time_ms == null ? '—' : `${item.response_time_ms} ms`}</td>
+          <td>${item.status_code ?? '-'}</td>
+          <td>${item.response_time_ms == null ? '-' : `${item.response_time_ms} ms`}</td>
           <td><div class="page-copy" title="${escapeHtml(item.title || '')}">${escapeHtml(item.title || 'Missing')}</div></td>
           <td><div class="page-copy" title="${escapeHtml(item.h1 || '')}">${escapeHtml(item.h1 || 'Missing')}</div></td>
           <td class="${item.has_gtm ? 'yes' : 'no'}">${item.has_gtm ? 'Yes' : 'No'}</td>
           <td class="${item.has_ga4 ? 'yes' : 'no'}">${item.has_ga4 ? 'Yes' : 'No'}</td>
           <td><span class="tag ${item.ok ? 'healthy' : 'attention'}">${item.ok ? 'Healthy' : 'Attention'}</span></td>
         </tr>
-      `).join('') || '<tr><td class="empty" colspan="9">No partner URLs configured.</td></tr>';
+      `;
+    }
+
+    function render(data) {
+      const checks = data.results || [];
+      const active = checks.filter((item) => !item.pending);
+      const upcoming = checks.length - active.length;
+      const healthy = active.filter((item) => item.ok).length;
+      count.textContent = `${healthy} of ${active.length} partners healthy${upcoming ? ` · ${upcoming} coming soon` : ''}`;
+      lastChecked.textContent = `Last checked ${data.checked_at_uae || data.checked_at_utc || 'just now'}`;
+      results.innerHTML = checks.map((item) => item.pending ? pendingRow(item) : checkedRow(item)).join('')
+        || '<tr><td class="empty" colspan="9">No partner URLs configured.</td></tr>';
     }
 
     async function runChecks() {
