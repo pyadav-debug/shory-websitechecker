@@ -66,7 +66,7 @@ def check_availability(target):
 
 def result_payload():
     targets = load_config(CONFIG_PATH)
-    with ThreadPoolExecutor(max_workers=min(8, len(targets))) as executor:
+    with ThreadPoolExecutor(max_workers=1) as executor:
         results = list(executor.map(check_availability, targets))
 
     results.extend(
