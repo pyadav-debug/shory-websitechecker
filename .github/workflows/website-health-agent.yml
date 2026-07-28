@@ -1,17 +1,17 @@
 name: Website Health Agent
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: shory-status-pages
+  group: shory-status-checker
   cancel-in-progress: true
 
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - status.json
   schedule:
     - cron: "0 */2 * * *"
   workflow_dispatch:
@@ -19,9 +19,6 @@ on:
 jobs:
   check-sites:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Check out repository
@@ -36,16 +33,16 @@ jobs:
         continue-on-error: true
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: python monitoring/website_health.py monitoring/website_health_config.toml site/status.json
+        run: python monitoring/website_health.py monitoring/website_health_config.toml status.json
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload dashboard
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-      - name: Publish dashboard
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Publish latest status
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add status.json
+          if git diff --cached --quiet; then
+            echo "No status changes to publish."
+          else
+            git commit -m "Update partner status"
+            git push
+          fi
