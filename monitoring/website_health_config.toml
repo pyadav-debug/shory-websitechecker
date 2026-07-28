@@ -1,12 +1,24 @@
-# Add one table per active partner URL.
-# Adding a new partner is just copying the [[urls]] block and changing its values.
-# Reduce upcoming_slots as real partners are added so the dashboard keeps the
-# intended number of rows.
-upcoming_slots = 2
+# Add one table per page shown on the stakeholder dashboard.
+# A page is shown as available when it returns a successful web response.
+upcoming_slots = 0
 
 [[urls]]
 name = "DLD"
 url = "https://www.shory.com/home-insurance/partner/dld"
+expected_text = ""
+cta_text = ""
+allow_status_codes = [200]
+
+[[urls]]
+name = "Motor Insurance"
+url = "https://www.shory.com/vehicle-insurance/generate-quotes"
+expected_text = ""
+cta_text = ""
+allow_status_codes = [200]
+
+[[urls]]
+name = "Home Insurance"
+url = "https://www.shory.com/home-insurance/quote/iw66MPEJzNP-knqeS-PkHA/basic-info"
 expected_text = ""
 cta_text = ""
 allow_status_codes = [200]
