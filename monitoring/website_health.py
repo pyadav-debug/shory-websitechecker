@@ -13,6 +13,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -144,6 +145,18 @@ def normalize_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
+def open_with_retry(request: urllib.request.Request):
+    """Retry temporary proxy failures without hiding real page errors."""
+    for attempt in range(3):
+        try:
+            return urllib.request.urlopen(request, timeout=DEFAULT_TIMEOUT_SECONDS)
+        except urllib.error.HTTPError as exc:
+            if exc.code != 422 or attempt == 2:
+                raise
+            exc.close()
+            time.sleep(2)
+
+
 def extract_and_check(target: CheckTarget) -> CheckResult:
     start = datetime.now(timezone.utc)
     # Shory blocks common cloud-hosting IPs, so use a read-only availability proxy.
@@ -167,7 +180,7 @@ def extract_and_check(target: CheckTarget) -> CheckResult:
     has_ga4 = False
 
     try:
-        with urllib.request.urlopen(request, timeout=DEFAULT_TIMEOUT_SECONDS) as response:
+        with open_with_retry(request) as response:
             status_code = response.getcode()
             final_url = target.url
             body = response.read()
