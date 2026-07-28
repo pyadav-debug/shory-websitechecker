@@ -1,7 +1,7 @@
 name: Website Health Agent
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -33,6 +33,19 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: python monitoring/website_health.py monitoring/website_health_config.toml site/status.json
+
+      - name: Publish latest status to branch Pages
+        run: |
+          cp site/status.json status.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add status.json
+          if git diff --cached --quiet; then
+            echo "Status is unchanged."
+          else
+            git commit -m "Update website health status [skip ci]"
+            git push
+          fi
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
