@@ -1,6 +1,6 @@
 {
-  "checked_at_utc": "2026-07-28T13:14:07Z",
-  "checked_at_uae": "2026-07-28 17:14:07 UAE",
+  "checked_at_utc": "2026-07-28T14:01:11Z",
+  "checked_at_uae": "2026-07-28 18:01:11 UAE",
   "all_passed": false,
   "results": [
     {
@@ -9,7 +9,7 @@
       "ok": false,
       "status_code": 503,
       "final_url": "https://www.shory.com/home-insurance/partner/dld",
-      "response_time_ms": 20316,
+      "response_time_ms": 20353,
       "title": "Dubai Home Insurance from AED 105/year | Compare Online",
       "h1": "",
       "issues": [
@@ -25,20 +25,13 @@
     {
       "name": "Motor Insurance",
       "url": "https://www.shory.com/vehicle-insurance/generate-quotes",
-      "ok": false,
-      "status_code": 403,
+      "ok": true,
+      "status_code": 200,
       "final_url": "https://www.shory.com/vehicle-insurance/generate-quotes",
-      "response_time_ms": 20212,
-      "title": "",
+      "response_time_ms": 39084,
+      "title": "Get Instant Online Quotes on Car Insurance | Shory",
       "h1": "",
-      "issues": [
-        "HTTP status 403",
-        "Unexpected HTTP status 403",
-        "Missing page title",
-        "Missing H1",
-        "GTM script not found",
-        "GA4 script not found"
-      ],
+      "issues": [],
       "has_gtm": false,
       "has_ga4": false
     },
@@ -48,7 +41,7 @@
       "ok": true,
       "status_code": 200,
       "final_url": "https://www.shory.com/home-insurance/quote/iw66MPEJzNP-knqeS-PkHA/basic-info",
-      "response_time_ms": 20295,
+      "response_time_ms": 20296,
       "title": "Shory General Insurance",
       "h1": "",
       "issues": [],
