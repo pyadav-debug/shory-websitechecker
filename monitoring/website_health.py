@@ -145,6 +145,15 @@ def normalize_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
+def parse_jina_target_status(lower_page_text: str) -> int | None:
+    """Extract the underlying target's real HTTP status from an r.jina.ai
+    proxy response, which itself always returns 200 even when the target
+    page errored (the real failure only appears as page text, e.g.
+    'Warning: Target URL returned error 503: Service Unavailable')."""
+    match = re.search(r"target url returned error (\d{3})", lower_page_text)
+    return int(match.group(1)) if match else None
+
+
 def open_with_retry(request: urllib.request.Request):
     """Retry temporary proxy failures without hiding real page errors."""
     for attempt in range(3):
@@ -169,6 +178,7 @@ def extract_and_check(target: CheckTarget) -> CheckResult:
     final_url = target.url
     response_time_ms: int | None = None
     page_html = ""
+    used_proxy = False
     issues: list[str] = []
     title = ""
     h1 = ""
@@ -187,6 +197,7 @@ def extract_and_check(target: CheckTarget) -> CheckResult:
         try:
             with open_with_retry(request) as response:
                 status_code = response.getcode()
+                used_proxy = check_url != target.url
                 final_url = response.geturl() if check_url == target.url else target.url
                 body = response.read()
                 response_time_ms = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
@@ -216,23 +227,37 @@ def extract_and_check(target: CheckTarget) -> CheckResult:
             issues = [f"Unexpected error: {exc}"]
 
     if page_html:
-        parser = PageParser()
-        parser.feed(page_html)
-        title = " ".join(parser.title_parts).strip()
-        h1 = " ".join(parser.h1_parts).strip()
-        raw_text = normalize_text(" ".join(parser.raw_text_parts))
-        interactive_texts = parser.interactive_texts
         lower_html = page_html.lower()
 
-        # Some Shory error pages return a successful proxy response while the
-        # page content clearly reports a 404.
-        soft_404_markers = (
-            "title: page not found",
-            "target url returned error 404",
-        )
-        if any(marker in lower_html for marker in soft_404_markers):
+        if used_proxy:
+            # r.jina.ai returns Markdown/plain text, not HTML, so there are no
+            # <title>/<h1> tags for PageParser to find. Its first line is a
+            # plain "Title: ..." line instead, and it strips <script> tags
+            # entirely, so GTM/GA4 can never be detected through this proxy.
+            title_match = re.match(r"title:\s*(.+)", page_html, re.IGNORECASE)
+            title = title_match.group(1).strip() if title_match else ""
+            h1 = ""
+            raw_text = normalize_text(page_html)
+            interactive_texts: list[str] = []
+        else:
+            parser = PageParser()
+            parser.feed(page_html)
+            title = " ".join(parser.title_parts).strip()
+            h1 = " ".join(parser.h1_parts).strip()
+            raw_text = normalize_text(" ".join(parser.raw_text_parts))
+            interactive_texts = parser.interactive_texts
+
+        # r.jina.ai always returns HTTP 200 for its own successful fetch even
+        # when the underlying target page errored; the real failure only
+        # shows up as page text.
+        if "title: page not found" in lower_html:
             status_code = 404
             issues.append("Page not found")
+        else:
+            jina_target_status = parse_jina_target_status(lower_html)
+            if jina_target_status is not None:
+                status_code = jina_target_status
+                issues.append(f"Target site returned HTTP {jina_target_status}")
 
         has_gtm = "googletagmanager.com/gtm.js" in lower_html or "gtm-" in lower_html
         has_ga4 = (
