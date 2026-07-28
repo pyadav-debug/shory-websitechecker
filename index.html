@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shory Partner Health</title>
+  <style>
+    :root { --ink: #10221d; --muted: #6a7770; --cream: #f6f3ea; --mint: #d8f0e4; --green: #16724a; --red: #b64235; --line: #dbe4dc; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: radial-gradient(circle at 10% 0%, #e5f4e9 0, transparent 34%), var(--cream); font-family: Georgia, 'Times New Roman', serif; }
+    main { width: min(980px, calc(100% - 32px)); margin: 0 auto; padding: 54px 0 72px; }
+    .eyebrow { color: var(--green); font: 700 12px/1.2 'Trebuchet MS', sans-serif; letter-spacing: .18em; text-transform: uppercase; }
+    h1 { max-width: 660px; margin: 12px 0 14px; font-size: clamp(42px, 8vw, 78px); line-height: .94; letter-spacing: -.055em; font-weight: 700; }
+    .intro { max-width: 590px; color: var(--muted); font: 17px/1.55 'Trebuchet MS', sans-serif; }
+    .toolbar { display: flex; align-items: center; gap: 18px; margin: 34px 0 24px; }
+    button { border: 0; border-radius: 999px; padding: 14px 22px; color: #fff; background: var(--green); cursor: pointer; font: 700 14px 'Trebuchet MS', sans-serif; box-shadow: 0 8px 18px #16724a2b; }
+    button:hover { background: #0e5c3b; } button:disabled { opacity: .65; cursor: wait; }
+    #last-checked { color: var(--muted); font: 13px 'Trebuchet MS', sans-serif; }
+    .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 28px 0; }
+    .stat, .card { border: 1px solid var(--line); background: #fffdf9cc; border-radius: 18px; }
+    .stat { padding: 19px 20px; } .stat strong { display: block; font-size: 31px; } .stat span { color: var(--muted); font: 12px 'Trebuchet MS', sans-serif; text-transform: uppercase; letter-spacing: .1em; }
+    .card { display: flex; justify-content: space-between; gap: 20px; align-items: center; padding: 21px 23px; margin: 11px 0; }
+    .card h2 { margin: 0 0 7px; font-size: 24px; } .card a { color: var(--muted); font: 13px 'Trebuchet MS', sans-serif; overflow-wrap: anywhere; }
+    .details { text-align: right; font: 13px/1.6 'Trebuchet MS', sans-serif; } .badge { display: inline-block; border-radius: 999px; padding: 6px 10px; color: #fff; background: var(--green); font-weight: 700; } .badge.fail { background: var(--red); }
+    .issues { margin-top: 5px; color: var(--red); max-width: 390px; }
+    .empty { padding: 30px; text-align: center; color: var(--muted); font: 15px 'Trebuchet MS', sans-serif; }
+    @media (max-width: 650px) { main { padding-top: 34px; } .summary { grid-template-columns: 1fr; } .card { display: block; } .details { margin-top: 16px; text-align: left; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">Shory / Partner readiness</div>
+    <h1>Website health, at a glance.</h1>
+    <p class="intro">A live view of the partner pages checked by Shory. Each check verifies availability, speed, page structure, key content, and analytics tags.</p>
+    <div class="toolbar"><button id="refresh" type="button">Refresh checks</button><span id="last-checked">Loading latest result...</span></div>
+    <section class="summary" id="summary"></section>
+    <section id="results"><div class="empty">Loading partner results...</div></section>
+  </main>
+  <script>
+    const refreshButton = document.querySelector('#refresh');
+    const lastChecked = document.querySelector('#last-checked');
+    const summary = document.querySelector('#summary');
+    const results = document.querySelector('#results');
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+    async function loadStatus() {
+      refreshButton.disabled = true;
+      refreshButton.textContent = 'Refreshing...';
+      try {
+        const response = await fetch(`status.json?ts=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`Status file returned ${response.status}`);
+        const data = await response.json();
+        const checked = data.results || [];
+        const passed = checked.filter((item) => item.ok).length;
+        summary.innerHTML = `<div class="stat"><strong>${checked.length}</strong><span>Partner pages</span></div><div class="stat"><strong>${passed}</strong><span>Healthy now</span></div><div class="stat"><strong>${checked.length - passed}</strong><span>Need attention</span></div>`;
+        lastChecked.textContent = `Last checked ${data.checked_at_uae || data.checked_at_utc || 'unknown'}`;
+        results.innerHTML = checked.map((item) => `<article class="card"><div><h2>${escapeHtml(item.name)}</h2><a href="${escapeHtml(item.final_url || item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.url)}</a></div><div class="details"><span class="badge ${item.ok ? '' : 'fail'}">${item.ok ? 'Healthy' : 'Attention needed'}</span><div>${item.status_code ?? 'n/a'} HTTP &middot; ${item.response_time_ms ?? 'n/a'} ms</div>${item.issues?.length ? `<div class="issues">${escapeHtml(item.issues.join(' · '))}</div>` : ''}</div></article>`).join('') || '<div class="empty">No partner URLs are configured yet.</div>';
+      } catch (error) {
+        results.innerHTML = `<div class="empty">Could not load the latest result. ${escapeHtml(error.message)}</div>`;
+        lastChecked.textContent = 'Refresh failed';
+      } finally { refreshButton.disabled = false; refreshButton.textContent = 'Refresh checks'; }
+    }
+    refreshButton.addEventListener('click', loadStatus);
+    loadStatus();
+  </script>
+</body>
+</html>
