@@ -225,7 +225,13 @@ def extract_and_check(target: CheckTarget) -> CheckResult:
         if not has_ga4:
             issues.append("GA4 script not found")
 
-    ok = not issues
+    # Stakeholder availability is based only on the HTTP response.
+    ok = status_code in target.allow_status_codes
+    if ok:
+        issues = []
+    elif status_code is not None and not issues:
+        issues.append(f"HTTP status {status_code}")
+
     return CheckResult(
         target=target,
         ok=ok,
