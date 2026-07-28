@@ -1,54 +1,32 @@
-# Website Health Agent
+# Shory Partners Status Checker
 
-This repo contains a free Website Health Agent for Shory that runs on GitHub Actions every 2 hours and can also be started manually. Each run publishes a partner-facing status dashboard to GitHub Pages.
+A free stakeholder dashboard that shows whether Shory partner and product pages are available.
 
-## What it checks
+## How it works
 
-- HTTP status
-- Response time
-- Page title
-- H1
-- Configured CTA text or expected text
-- GTM script presence
-- GA4 script presence
+- GitHub Actions checks every configured page every 2 hours.
+- A push to the main branch also runs a fresh check.
+- The latest results are published automatically to GitHub Pages.
+- The public dashboard shows only the partner, full page URL, and Available or Not available.
+- Check history is kept in GitHub Actions logs.
+- Slack alerts are sent only when a page is unavailable and the webhook secret is configured.
 
-If any check fails, the workflow sends a Slack webhook alert with the URL, failure reason, HTTP status, response time, and UTC/UAE timestamps. When checks pass, nothing is sent to Slack.
+Dashboard: https://pyadav-debug.github.io/shory-websitechecker/
 
-## Files
+## Add another page
 
-- `monitoring/website_health.py`: the monitor
-- `monitoring/website_health_config.toml`: the partner URL config
-- `.github/workflows/website-health-agent.yml`: the scheduled GitHub Actions job
-- `site/index.html`: the shareable partner dashboard
-- `site/status.json`: the latest published check result
+Add another [[urls]] block to monitoring/website_health_config.toml with:
 
-## Setup
+- name
+- url
+- allow_status_codes, normally [200]
 
-1. Add your partner URLs to `monitoring/website_health_config.toml`.
-1. In GitHub, add a repository secret named `SLACK_WEBHOOK_URL`.
-1. Point the secret at your Slack incoming webhook.
-1. In the repository settings, enable GitHub Pages with `GitHub Actions` as the source.
-1. Run the workflow manually once to confirm the checks, alerting, and dashboard.
+The next GitHub Actions run will check it and update the dashboard automatically.
 
-The dashboard URL will be:
+## Slack setup
 
-`https://pyadav-debug.github.io/shory-websitechecker/`
+Add a GitHub repository secret named SLACK_WEBHOOK_URL containing the Slack incoming webhook URL. Leave it unset if Slack alerts are not needed.
 
-The `Refresh checks` button reloads the latest server-side result immediately. A new server-side check is also available by selecting `Run workflow` in the GitHub Actions tab; the scheduled job runs every 2 hours automatically.
+## Manual check
 
-## Adding more URLs
-
-To add another partner, copy one `[[urls]]` block in `monitoring/website_health_config.toml` and update:
-
-- `name`
-- `url`
-- `expected_text`
-- `cta_text`
-- `allow_status_codes` if the page should accept more than `200`
-
-## Notes
-
-- The workflow is read-only and does not depend on any paid monitoring service.
-- Check history is preserved in the GitHub Actions run logs.
-- The script uses standard-library Python only, so there are no package installs.
-
+Open the Website Health Agent workflow in the repository Actions tab and select Run workflow. The Refresh status button on the public dashboard reloads the latest completed check.
