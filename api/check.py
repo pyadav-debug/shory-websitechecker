@@ -20,6 +20,8 @@ from monitoring.website_health import (
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "monitoring" / "website_health_config.toml"
+MAX_CHECK_ATTEMPTS = 2
+CHECK_RETRY_DELAY_SECONDS = 2
 
 
 def load_upcoming_slots():
@@ -28,6 +30,20 @@ def load_upcoming_slots():
 
 
 def check_availability(target):
+    """Retry once before reporting a failure: Shory's WAF intermittently
+    blocks the proxy request, so a single failed attempt often just means
+    bad luck on that one request, not a real outage."""
+    result = None
+    for attempt in range(MAX_CHECK_ATTEMPTS):
+        result = _check_once(target)
+        if result["ok"]:
+            return result
+        if attempt < MAX_CHECK_ATTEMPTS - 1:
+            time.sleep(CHECK_RETRY_DELAY_SECONDS)
+    return result
+
+
+def _check_once(target):
     """Use a read-only web proxy because Shory blocks Vercel's outgoing request."""
     started = time.monotonic()
     proxy_url = f"https://r.jina.ai/{target.url}"
@@ -76,7 +92,9 @@ def check_availability(target):
 
 def result_payload():
     targets = load_config(CONFIG_PATH)
-    with ThreadPoolExecutor(max_workers=1) as executor:
+    # Run targets concurrently so the added retry (see check_availability)
+    # doesn't multiply total latency by the number of partner pages.
+    with ThreadPoolExecutor(max_workers=max(1, len(targets))) as executor:
         results = list(executor.map(check_availability, targets))
 
     results.extend(

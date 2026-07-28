@@ -31,6 +31,8 @@ except ModuleNotFoundError:  # pragma: no cover - Python < 3.11 fallback
 
 UAE_TZ = timezone(timedelta(hours=4))
 DEFAULT_TIMEOUT_SECONDS = 20
+MAX_CHECK_ATTEMPTS = 3
+CHECK_RETRY_DELAY_SECONDS = 3
 
 
 @dataclass
@@ -167,6 +169,22 @@ def open_with_retry(request: urllib.request.Request):
 
 
 def extract_and_check(target: CheckTarget) -> CheckResult:
+    """Retry a failed check before reporting it: Shory's WAF intermittently
+    blocks the direct connection and the r.jina.ai proxy alike, so a single
+    failed attempt often just means bad luck on that one request, not a real
+    outage (confirmed live: the same URL flipped between blocked and clean
+    across consecutive requests seconds apart)."""
+    result = None
+    for attempt in range(MAX_CHECK_ATTEMPTS):
+        result = _check_once(target)
+        if result.ok:
+            return result
+        if attempt < MAX_CHECK_ATTEMPTS - 1:
+            time.sleep(CHECK_RETRY_DELAY_SECONDS)
+    return result
+
+
+def _check_once(target: CheckTarget) -> CheckResult:
     start = datetime.now(timezone.utc)
     check_urls = [
         target.url,
