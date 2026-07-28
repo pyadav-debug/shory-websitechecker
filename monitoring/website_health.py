@@ -157,26 +157,10 @@ def open_with_retry(request: urllib.request.Request):
             time.sleep(2)
 
 
-def add_cache_buster(url: str) -> str:
-    """Ask the read-only proxy for a fresh copy of pages that may have just changed."""
-    parsed = urllib.parse.urlsplit(url)
-    query = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
-    query.append(("shory_health_check", str(int(time.time()))))
-    return urllib.parse.urlunsplit(
-        (
-            parsed.scheme,
-            parsed.netloc,
-            parsed.path,
-            urllib.parse.urlencode(query),
-            parsed.fragment,
-        )
-    )
-
-
 def extract_and_check(target: CheckTarget) -> CheckResult:
     start = datetime.now(timezone.utc)
     # Shory blocks common cloud-hosting IPs, so use a read-only availability proxy.
-    check_url = f"https://r.jina.ai/{add_cache_buster(target.url)}"
+    check_url = f"https://r.jina.ai/{target.url}"
     request = urllib.request.Request(
         check_url,
         headers={
