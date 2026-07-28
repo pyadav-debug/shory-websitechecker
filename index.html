@@ -51,26 +51,24 @@
     .table-shell { overflow: hidden; border: 1px solid rgba(218, 226, 239, .9); border-radius: 20px; background: var(--panel); box-shadow: var(--shadow); }
     .meta { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 22px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px; }
     .count { color: var(--ink); font-weight: 700; }
-    .table-scroll { overflow-x: auto; }
-    table { width: 100%; min-width: 1040px; border-collapse: collapse; }
-    th { padding: 13px 16px; color: #8994a7; background: var(--header); text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
-    td { padding: 18px 16px; border-top: 1px solid var(--line); font-size: 13px; vertical-align: middle; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th { padding: 14px 22px; color: #8994a7; background: var(--header); text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+    th:nth-child(1) { width: 20%; }
+    th:nth-child(2) { width: 58%; }
+    th:nth-child(3) { width: 22%; }
+    td { padding: 22px; border-top: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
     tbody tr:first-child td { border-top: 0; }
     tbody tr:hover { background: #fbfcfe; }
     .partner { font-weight: 750; color: var(--ink); }
-    .url { display: block; max-width: 260px; overflow: hidden; color: #60708a; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
-    .url:hover { color: var(--brand); }
-    .page-copy { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .url { color: #526985; overflow-wrap: anywhere; text-decoration: none; }
+    .url:hover { color: var(--brand); text-decoration: underline; }
     .muted { color: var(--muted); }
-    .tag { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 7px 10px; font-weight: 750; white-space: nowrap; }
+    .tag { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 8px 11px; font-weight: 750; white-space: nowrap; }
     .tag::before { width: 7px; height: 7px; border-radius: 50%; background: currentColor; content: ""; }
-    .healthy { color: var(--good); background: var(--good-bg); }
-    .attention { color: var(--bad); background: var(--bad-bg); }
+    .live { color: var(--good); background: var(--good-bg); }
+    .issue { color: var(--bad); background: var(--bad-bg); }
     .coming { color: var(--neutral); background: var(--neutral-bg); }
-    .yes { color: var(--good); font-weight: 750; }
-    .no { color: var(--bad); font-weight: 750; }
     .empty { padding: 58px 22px; color: var(--muted); text-align: center; }
-    .loading-row td { padding: 48px 22px; color: var(--muted); text-align: center; }
     .error { color: var(--bad); }
     @media (max-width: 700px) {
       main { width: min(100% - 22px, 1180px); padding: 32px 0; }
@@ -78,6 +76,11 @@
       h1 { max-width: 230px; }
       button { padding: 12px 15px; }
       .meta { align-items: flex-start; flex-direction: column; }
+      th, td { padding: 16px 12px; }
+      th:nth-child(1) { width: 25%; }
+      th:nth-child(2) { width: 47%; }
+      th:nth-child(3) { width: 28%; }
+      .tag { padding: 7px 9px; font-size: 12px; }
     }
   </style>
 </head>
@@ -85,33 +88,25 @@
   <main>
     <div class="title-row">
       <h1>Shory Partners Status Checker</h1>
-      <button id="refresh" type="button">Refresh checks</button>
+      <button id="refresh" type="button">Check now</button>
     </div>
     <section class="table-shell">
       <div class="meta">
-        <span class="count" id="count">Checking partners...</span>
-        <span id="last-checked">Running live checks</span>
+        <span class="count" id="count">Checking partner pages...</span>
+        <span id="last-checked">Checking now</span>
       </div>
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Partner</th>
-              <th>URL</th>
-              <th>HTTP</th>
-              <th>Response</th>
-              <th>Page title</th>
-              <th>H1</th>
-              <th>GTM</th>
-              <th>GA4</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="results">
-            <tr class="loading-row"><td colspan="9">Running partner checks...</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Partner</th>
+            <th>Partner page</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="results">
+          <tr><td class="empty" colspan="3">Checking partner pages...</td></tr>
+        </tbody>
+      </table>
     </section>
   </main>
   <script>
@@ -121,34 +116,23 @@
     const results = document.querySelector('#results');
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
 
-    function pendingRow(item) {
-      return `
-        <tr>
-          <td class="partner">${escapeHtml(item.name)}</td>
-          <td class="muted">To be added soon</td>
-          <td class="muted">-</td>
-          <td class="muted">-</td>
-          <td class="muted">-</td>
-          <td class="muted">-</td>
-          <td class="muted">-</td>
-          <td class="muted">-</td>
-          <td><span class="tag coming">Coming soon</span></td>
-        </tr>
-      `;
-    }
+    function row(item) {
+      if (item.pending) {
+        return `
+          <tr>
+            <td class="partner">${escapeHtml(item.name)}</td>
+            <td class="muted">Partner page to be added</td>
+            <td><span class="tag coming">Coming soon</span></td>
+          </tr>
+        `;
+      }
 
-    function checkedRow(item) {
+      const url = item.final_url || item.url;
       return `
         <tr>
           <td class="partner">${escapeHtml(item.name)}</td>
-          <td><a class="url" href="${escapeHtml(item.final_url || item.url)}" target="_blank" rel="noreferrer" title="${escapeHtml(item.url)}">${escapeHtml(item.url)}</a></td>
-          <td>${item.status_code ?? '-'}</td>
-          <td>${item.response_time_ms == null ? '-' : `${item.response_time_ms} ms`}</td>
-          <td><div class="page-copy" title="${escapeHtml(item.title || '')}">${escapeHtml(item.title || 'Missing')}</div></td>
-          <td><div class="page-copy" title="${escapeHtml(item.h1 || '')}">${escapeHtml(item.h1 || 'Missing')}</div></td>
-          <td class="${item.has_gtm ? 'yes' : 'no'}">${item.has_gtm ? 'Yes' : 'No'}</td>
-          <td class="${item.has_ga4 ? 'yes' : 'no'}">${item.has_ga4 ? 'Yes' : 'No'}</td>
-          <td><span class="tag ${item.ok ? 'healthy' : 'attention'}">${item.ok ? 'Healthy' : 'Attention'}</span></td>
+          <td><a class="url" href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${escapeHtml(item.url)}</a></td>
+          <td><span class="tag ${item.ok ? 'live' : 'issue'}">${item.ok ? 'Available' : 'Needs checking'}</span></td>
         </tr>
       `;
     }
@@ -157,29 +141,30 @@
       const checks = data.results || [];
       const active = checks.filter((item) => !item.pending);
       const upcoming = checks.length - active.length;
-      const healthy = active.filter((item) => item.ok).length;
-      count.textContent = `${healthy} of ${active.length} partners healthy${upcoming ? ` · ${upcoming} coming soon` : ''}`;
+      const available = active.filter((item) => item.ok).length;
+      const pageWord = active.length === 1 ? 'page' : 'pages';
+      count.textContent = `${available} of ${active.length} partner ${pageWord} available${upcoming ? ` · ${upcoming} coming soon` : ''}`;
       lastChecked.textContent = `Last checked ${data.checked_at_uae || data.checked_at_utc || 'just now'}`;
-      results.innerHTML = checks.map((item) => item.pending ? pendingRow(item) : checkedRow(item)).join('')
-        || '<tr><td class="empty" colspan="9">No partner URLs configured.</td></tr>';
+      results.innerHTML = checks.map(row).join('')
+        || '<tr><td class="empty" colspan="3">No partner pages added yet.</td></tr>';
     }
 
     async function runChecks() {
       refreshButton.disabled = true;
       refreshButton.textContent = 'Checking...';
-      count.textContent = 'Checking partners...';
-      lastChecked.textContent = 'Running live checks';
+      count.textContent = 'Checking partner pages...';
+      lastChecked.textContent = 'Checking now';
       try {
         const response = await fetch(`/api/check?ts=${Date.now()}`, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`Check returned HTTP ${response.status}`);
+        if (!response.ok) throw new Error('The check could not be completed');
         render(await response.json());
       } catch (error) {
-        count.textContent = 'Unable to check partners';
-        lastChecked.textContent = error.message;
-        results.innerHTML = '<tr><td class="empty error" colspan="9">The live check could not be completed. Please try again.</td></tr>';
+        count.textContent = 'Unable to check partner pages';
+        lastChecked.textContent = 'Please try again';
+        results.innerHTML = '<tr><td class="empty error" colspan="3">We could not check the partner pages right now.</td></tr>';
       } finally {
         refreshButton.disabled = false;
-        refreshButton.textContent = 'Refresh checks';
+        refreshButton.textContent = 'Check now';
       }
     }
 
