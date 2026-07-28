@@ -1,6 +1,6 @@
 {
-  "checked_at_utc": "2026-07-28T08:43:30Z",
-  "checked_at_uae": "2026-07-28 12:43:30 UAE",
+  "checked_at_utc": "2026-07-28T08:44:05Z",
+  "checked_at_uae": "2026-07-28 12:44:05 UAE",
   "all_passed": false,
   "results": [
     {
@@ -9,7 +9,7 @@
       "ok": false,
       "status_code": 404,
       "final_url": "https://example.com/partner-1",
-      "response_time_ms": 64,
+      "response_time_ms": 43,
       "title": "Example Domain",
       "h1": "Example Domain",
       "issues": [
@@ -28,7 +28,7 @@
       "ok": false,
       "status_code": 404,
       "final_url": "https://example.com/partner-2",
-      "response_time_ms": 30,
+      "response_time_ms": 37,
       "title": "Example Domain",
       "h1": "Example Domain",
       "issues": [
@@ -48,7 +48,7 @@
       "ok": false,
       "status_code": 404,
       "final_url": "https://example.com/partner-3",
-      "response_time_ms": 31,
+      "response_time_ms": 32,
       "title": "Example Domain",
       "h1": "Example Domain",
       "issues": [
