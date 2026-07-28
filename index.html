@@ -3,64 +3,163 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Shory Partner Health</title>
+  <title>Shory Partners Status Checker</title>
   <style>
-    :root { --ink: #10221d; --muted: #6a7770; --cream: #f6f3ea; --mint: #d8f0e4; --green: #16724a; --red: #b64235; --line: #dbe4dc; }
+    :root {
+      --ink: #17243d;
+      --muted: #7b879d;
+      --page: #eef3fb;
+      --panel: #ffffff;
+      --line: #e4eaf3;
+      --header: #f6f8fc;
+      --brand: #16724a;
+      --brand-dark: #0e5c3b;
+      --good: #16875d;
+      --good-bg: #dff6ec;
+      --bad: #c54b43;
+      --bad-bg: #fde9e7;
+      --neutral: #69758a;
+      --shadow: 0 22px 70px rgba(42, 58, 88, .13);
+    }
     * { box-sizing: border-box; }
-    body { margin: 0; color: var(--ink); background: radial-gradient(circle at 10% 0%, #e5f4e9 0, transparent 34%), var(--cream); font-family: Georgia, 'Times New Roman', serif; }
-    main { width: min(980px, calc(100% - 32px)); margin: 0 auto; padding: 54px 0 72px; }
-    .eyebrow { color: var(--green); font: 700 12px/1.2 'Trebuchet MS', sans-serif; letter-spacing: .18em; text-transform: uppercase; }
-    h1 { max-width: 660px; margin: 12px 0 14px; font-size: clamp(42px, 8vw, 78px); line-height: .94; letter-spacing: -.055em; font-weight: 700; }
-    .intro { max-width: 590px; color: var(--muted); font: 17px/1.55 'Trebuchet MS', sans-serif; }
-    .toolbar { display: flex; align-items: center; gap: 18px; margin: 34px 0 24px; }
-    button { border: 0; border-radius: 999px; padding: 14px 22px; color: #fff; background: var(--green); cursor: pointer; font: 700 14px 'Trebuchet MS', sans-serif; box-shadow: 0 8px 18px #16724a2b; }
-    button:hover { background: #0e5c3b; } button:disabled { opacity: .65; cursor: wait; }
-    #last-checked { color: var(--muted); font: 13px 'Trebuchet MS', sans-serif; }
-    .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 28px 0; }
-    .stat, .card { border: 1px solid var(--line); background: #fffdf9cc; border-radius: 18px; }
-    .stat { padding: 19px 20px; } .stat strong { display: block; font-size: 31px; } .stat span { color: var(--muted); font: 12px 'Trebuchet MS', sans-serif; text-transform: uppercase; letter-spacing: .1em; }
-    .card { display: flex; justify-content: space-between; gap: 20px; align-items: center; padding: 21px 23px; margin: 11px 0; }
-    .card h2 { margin: 0 0 7px; font-size: 24px; } .card a { color: var(--muted); font: 13px 'Trebuchet MS', sans-serif; overflow-wrap: anywhere; }
-    .details { text-align: right; font: 13px/1.6 'Trebuchet MS', sans-serif; } .badge { display: inline-block; border-radius: 999px; padding: 6px 10px; color: #fff; background: var(--green); font-weight: 700; } .badge.fail { background: var(--red); }
-    .issues { margin-top: 5px; color: var(--red); max-width: 390px; }
-    .empty { padding: 30px; text-align: center; color: var(--muted); font: 15px 'Trebuchet MS', sans-serif; }
-    @media (max-width: 650px) { main { padding-top: 34px; } .summary { grid-template-columns: 1fr; } .card { display: block; } .details { margin-top: 16px; text-align: left; } }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(203, 239, 222, .72), transparent 28%),
+        linear-gradient(145deg, #f7f5ed 0%, var(--page) 64%);
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+    }
+    main { width: min(1180px, calc(100% - 36px)); margin: 0 auto; padding: 64px 0; }
+    .title-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 26px; }
+    h1 { margin: 0; font: 700 clamp(30px, 5vw, 48px)/1.05 Georgia, serif; letter-spacing: -.035em; color: #102820; }
+    button {
+      flex: 0 0 auto;
+      border: 0;
+      border-radius: 11px;
+      padding: 13px 20px;
+      color: #fff;
+      background: var(--brand);
+      box-shadow: 0 9px 22px rgba(22, 114, 74, .22);
+      cursor: pointer;
+      font: 700 13px/1 "Avenir Next", "Segoe UI", sans-serif;
+    }
+    button:hover { background: var(--brand-dark); }
+    button:disabled { cursor: wait; opacity: .62; }
+    .table-shell { overflow: hidden; border: 1px solid rgba(218, 226, 239, .9); border-radius: 20px; background: var(--panel); box-shadow: var(--shadow); }
+    .meta { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 22px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+    .count { color: var(--ink); font-weight: 700; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; min-width: 1040px; border-collapse: collapse; }
+    th { padding: 13px 16px; color: #8994a7; background: var(--header); text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 18px 16px; border-top: 1px solid var(--line); font-size: 13px; vertical-align: middle; }
+    tbody tr:first-child td { border-top: 0; }
+    tbody tr:hover { background: #fbfcfe; }
+    .partner { font-weight: 750; color: var(--ink); }
+    .url { display: block; max-width: 260px; overflow: hidden; color: #60708a; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+    .url:hover { color: var(--brand); }
+    .page-copy { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .muted { color: var(--muted); }
+    .tag { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 7px 10px; font-weight: 750; white-space: nowrap; }
+    .tag::before { width: 7px; height: 7px; border-radius: 50%; background: currentColor; content: ""; }
+    .healthy { color: var(--good); background: var(--good-bg); }
+    .attention { color: var(--bad); background: var(--bad-bg); }
+    .yes { color: var(--good); font-weight: 750; }
+    .no { color: var(--bad); font-weight: 750; }
+    .empty { padding: 58px 22px; color: var(--muted); text-align: center; }
+    .loading-row td { padding: 48px 22px; color: var(--muted); text-align: center; }
+    .error { color: var(--bad); }
+    @media (max-width: 700px) {
+      main { width: min(100% - 22px, 1180px); padding: 32px 0; }
+      .title-row { align-items: flex-start; }
+      h1 { max-width: 230px; }
+      button { padding: 12px 15px; }
+      .meta { align-items: flex-start; flex-direction: column; }
+    }
   </style>
 </head>
 <body>
   <main>
-    <div class="eyebrow">Shory / Partner readiness</div>
-    <h1>Website health, at a glance.</h1>
-    <p class="intro">A live view of the partner pages checked by Shory. Each check verifies availability, speed, page structure, key content, and analytics tags.</p>
-    <div class="toolbar"><button id="refresh" type="button">Refresh checks</button><span id="last-checked">Loading latest result...</span></div>
-    <section class="summary" id="summary"></section>
-    <section id="results"><div class="empty">Loading partner results...</div></section>
+    <div class="title-row">
+      <h1>Shory Partners Status Checker</h1>
+      <button id="refresh" type="button">Refresh checks</button>
+    </div>
+    <section class="table-shell">
+      <div class="meta">
+        <span class="count" id="count">Checking partners...</span>
+        <span id="last-checked">Running live checks</span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Partner</th>
+              <th>URL</th>
+              <th>HTTP</th>
+              <th>Response</th>
+              <th>Page title</th>
+              <th>H1</th>
+              <th>GTM</th>
+              <th>GA4</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="results">
+            <tr class="loading-row"><td colspan="9">Running partner checks...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
   <script>
     const refreshButton = document.querySelector('#refresh');
+    const count = document.querySelector('#count');
     const lastChecked = document.querySelector('#last-checked');
-    const summary = document.querySelector('#summary');
     const results = document.querySelector('#results');
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
-    async function loadStatus() {
-      refreshButton.disabled = true;
-      refreshButton.textContent = 'Refreshing...';
-      try {
-        const response = await fetch(`status.json?ts=${Date.now()}`, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`Status file returned ${response.status}`);
-        const data = await response.json();
-        const checked = data.results || [];
-        const passed = checked.filter((item) => item.ok).length;
-        summary.innerHTML = `<div class="stat"><strong>${checked.length}</strong><span>Partner pages</span></div><div class="stat"><strong>${passed}</strong><span>Healthy now</span></div><div class="stat"><strong>${checked.length - passed}</strong><span>Need attention</span></div>`;
-        lastChecked.textContent = `Last checked ${data.checked_at_uae || data.checked_at_utc || 'unknown'}`;
-        results.innerHTML = checked.map((item) => `<article class="card"><div><h2>${escapeHtml(item.name)}</h2><a href="${escapeHtml(item.final_url || item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.url)}</a></div><div class="details"><span class="badge ${item.ok ? '' : 'fail'}">${item.ok ? 'Healthy' : 'Attention needed'}</span><div>${item.status_code ?? 'n/a'} HTTP &middot; ${item.response_time_ms ?? 'n/a'} ms</div>${item.issues?.length ? `<div class="issues">${escapeHtml(item.issues.join(' · '))}</div>` : ''}</div></article>`).join('') || '<div class="empty">No partner URLs are configured yet.</div>';
-      } catch (error) {
-        results.innerHTML = `<div class="empty">Could not load the latest result. ${escapeHtml(error.message)}</div>`;
-        lastChecked.textContent = 'Refresh failed';
-      } finally { refreshButton.disabled = false; refreshButton.textContent = 'Refresh checks'; }
+
+    function render(data) {
+      const checks = data.results || [];
+      const healthy = checks.filter((item) => item.ok).length;
+      count.textContent = `${healthy} of ${checks.length} partners healthy`;
+      lastChecked.textContent = `Last checked ${data.checked_at_uae || data.checked_at_utc || 'just now'}`;
+      results.innerHTML = checks.map((item) => `
+        <tr>
+          <td class="partner">${escapeHtml(item.name)}</td>
+          <td><a class="url" href="${escapeHtml(item.final_url || item.url)}" target="_blank" rel="noreferrer" title="${escapeHtml(item.url)}">${escapeHtml(item.url)}</a></td>
+          <td>${item.status_code ?? '—'}</td>
+          <td>${item.response_time_ms == null ? '—' : `${item.response_time_ms} ms`}</td>
+          <td><div class="page-copy" title="${escapeHtml(item.title || '')}">${escapeHtml(item.title || 'Missing')}</div></td>
+          <td><div class="page-copy" title="${escapeHtml(item.h1 || '')}">${escapeHtml(item.h1 || 'Missing')}</div></td>
+          <td class="${item.has_gtm ? 'yes' : 'no'}">${item.has_gtm ? 'Yes' : 'No'}</td>
+          <td class="${item.has_ga4 ? 'yes' : 'no'}">${item.has_ga4 ? 'Yes' : 'No'}</td>
+          <td><span class="tag ${item.ok ? 'healthy' : 'attention'}">${item.ok ? 'Healthy' : 'Attention'}</span></td>
+        </tr>
+      `).join('') || '<tr><td class="empty" colspan="9">No partner URLs configured.</td></tr>';
     }
-    refreshButton.addEventListener('click', loadStatus);
-    loadStatus();
+
+    async function runChecks() {
+      refreshButton.disabled = true;
+      refreshButton.textContent = 'Checking...';
+      count.textContent = 'Checking partners...';
+      lastChecked.textContent = 'Running live checks';
+      try {
+        const response = await fetch(`/api/check?ts=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`Check returned HTTP ${response.status}`);
+        render(await response.json());
+      } catch (error) {
+        count.textContent = 'Unable to check partners';
+        lastChecked.textContent = error.message;
+        results.innerHTML = '<tr><td class="empty error" colspan="9">The live check could not be completed. Please try again.</td></tr>';
+      } finally {
+        refreshButton.disabled = false;
+        refreshButton.textContent = 'Refresh checks';
+      }
+    }
+
+    refreshButton.addEventListener('click', runChecks);
+    runChecks();
   </script>
 </body>
 </html>
