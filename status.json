@@ -1,6 +1,66 @@
 {
-  "checked_at_utc": null,
-  "checked_at_uae": "Not checked yet",
+  "checked_at_utc": "2026-07-28T08:34:55Z",
+  "checked_at_uae": "2026-07-28 12:34:55 UAE",
   "all_passed": false,
-  "results": []
+  "results": [
+    {
+      "name": "Partner 1",
+      "url": "https://example.com/partner-1",
+      "ok": false,
+      "status_code": 404,
+      "final_url": "https://example.com/partner-1",
+      "response_time_ms": 85,
+      "title": "Example Domain",
+      "h1": "Example Domain",
+      "issues": [
+        "HTTP status 404",
+        "Unexpected HTTP status 404",
+        "Expected text not found: Partner 1",
+        "GTM script not found",
+        "GA4 script not found"
+      ],
+      "has_gtm": false,
+      "has_ga4": false
+    },
+    {
+      "name": "Partner 2",
+      "url": "https://example.com/partner-2",
+      "ok": false,
+      "status_code": 404,
+      "final_url": "https://example.com/partner-2",
+      "response_time_ms": 35,
+      "title": "Example Domain",
+      "h1": "Example Domain",
+      "issues": [
+        "HTTP status 404",
+        "Unexpected HTTP status 404",
+        "Expected text not found: Partner 2",
+        "CTA text not found: Get quote",
+        "GTM script not found",
+        "GA4 script not found"
+      ],
+      "has_gtm": false,
+      "has_ga4": false
+    },
+    {
+      "name": "Partner 3",
+      "url": "https://example.com/partner-3",
+      "ok": false,
+      "status_code": 404,
+      "final_url": "https://example.com/partner-3",
+      "response_time_ms": 37,
+      "title": "Example Domain",
+      "h1": "Example Domain",
+      "issues": [
+        "HTTP status 404",
+        "Unexpected HTTP status 404",
+        "Expected text not found: Partner 3",
+        "CTA text not found: Contact us",
+        "GTM script not found",
+        "GA4 script not found"
+      ],
+      "has_gtm": false,
+      "has_ga4": false
+    }
+  ]
 }
