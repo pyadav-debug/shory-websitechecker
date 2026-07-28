@@ -116,6 +116,8 @@
     const results = document.querySelector('#results');
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
 
+    const isAvailable = (item) => item.status_code >= 200 && item.status_code < 400;
+
     function row(item) {
       if (item.pending) {
         return `
@@ -132,7 +134,7 @@
         <tr>
           <td class="partner">${escapeHtml(item.name)}</td>
           <td><a class="url" href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${escapeHtml(item.url)}</a></td>
-          <td><span class="tag ${item.ok ? 'live' : 'issue'}">${item.ok ? 'Available' : 'Needs checking'}</span></td>
+          <td><span class="tag ${isAvailable(item) ? 'live' : 'issue'}">${isAvailable(item) ? 'Available' : 'Not available'}</span></td>
         </tr>
       `;
     }
@@ -141,7 +143,7 @@
       const checks = data.results || [];
       const active = checks.filter((item) => !item.pending);
       const upcoming = checks.length - active.length;
-      const available = active.filter((item) => item.ok).length;
+      const available = active.filter(isAvailable).length;
       const pageWord = active.length === 1 ? 'page' : 'pages';
       count.textContent = `${available} of ${active.length} partner ${pageWord} available${upcoming ? ` · ${upcoming} coming soon` : ''}`;
       lastChecked.textContent = `Last checked ${data.checked_at_uae || data.checked_at_utc || 'just now'}`;
