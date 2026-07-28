@@ -234,7 +234,7 @@ def extract_and_check(target: CheckTarget) -> CheckResult:
             # <title>/<h1> tags for PageParser to find. Its first line is a
             # plain "Title: ..." line instead, and it strips <script> tags
             # entirely, so GTM/GA4 can never be detected through this proxy.
-            title_match = re.match(r"title:\s*(.+)", page_html, re.IGNORECASE)
+            title_match = re.match(r"title:[ \t]*(.*)", page_html, re.IGNORECASE)
             title = title_match.group(1).strip() if title_match else ""
             h1 = ""
             raw_text = normalize_text(page_html)
