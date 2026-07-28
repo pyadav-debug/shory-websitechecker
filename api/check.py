@@ -28,45 +28,36 @@ def load_upcoming_slots():
 
 
 def check_availability(target):
-    """Check the target directly; fall back to a read-only proxy if Shory
-    blocks the direct connection (observed from Vercel's outgoing IPs)."""
+    """Use a read-only web proxy because Shory blocks Vercel's outgoing request."""
     started = time.monotonic()
-    check_urls = [target.url, f"https://r.jina.ai/{target.url}"]
+    proxy_url = f"https://r.jina.ai/{target.url}"
+    request = urllib.request.Request(
+        proxy_url,
+        headers={
+            "User-Agent": "Mozilla/5.0 (compatible; ShoryStatusChecker/1.0)",
+            "Accept": "text/plain",
+        },
+    )
 
     status_code = None
     issues = []
-    for check_url in check_urls:
-        used_proxy = check_url != target.url
-        request = urllib.request.Request(
-            check_url,
-            headers={
-                "User-Agent": "Mozilla/5.0 (compatible; ShoryStatusChecker/1.0)",
-                "Accept": "text/plain" if used_proxy else
-                    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            },
-        )
-        try:
-            with open_with_retry(request) as response:
-                status_code = response.getcode()
-                if used_proxy:
-                    # r.jina.ai always returns 200 for its own fetch even when
-                    # the underlying target page errored; the real failure
-                    # only shows up as page text.
-                    body = response.read(4096).decode("utf-8", errors="replace")
-                    real_status = parse_jina_target_status(body.lower())
-                    if real_status is not None:
-                        status_code = real_status
-                else:
-                    response.read(1)
-                issues = []
-                break
-        except urllib.error.HTTPError as exc:
-            status_code = exc.code
-            issues = [f"Page check returned HTTP {exc.code}"]
-        except urllib.error.URLError as exc:
-            issues = [f"Page check failed: {getattr(exc, 'reason', exc)}"]
-        except Exception as exc:
-            issues = [f"Page check failed: {exc}"]
+    try:
+        with open_with_retry(request) as response:
+            status_code = response.getcode()
+            # r.jina.ai always returns 200 for its own fetch even when the
+            # underlying target page errored; the real failure only shows up
+            # as page text.
+            body = response.read(4096).decode("utf-8", errors="replace")
+            real_status = parse_jina_target_status(body.lower())
+            if real_status is not None:
+                status_code = real_status
+    except urllib.error.HTTPError as exc:
+        status_code = exc.code
+        issues.append(f"Page check returned HTTP {exc.code}")
+    except urllib.error.URLError as exc:
+        issues.append(f"Page check failed: {getattr(exc, 'reason', exc)}")
+    except Exception as exc:
+        issues.append(f"Page check failed: {exc}")
 
     available = status_code is not None and 200 <= status_code < 400
     if not available and not issues:
