@@ -146,8 +146,10 @@ def normalize_text(text: str) -> str:
 
 def extract_and_check(target: CheckTarget) -> CheckResult:
     start = datetime.now(timezone.utc)
+    # Shory blocks common cloud-hosting IPs, so use a read-only availability proxy.
+    check_url = f"https://r.jina.ai/{target.url}"
     request = urllib.request.Request(
-        target.url,
+        check_url,
         headers={
             "User-Agent": "Mozilla/5.0 (compatible; ShoryWebsiteHealthBot/1.0)",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -167,7 +169,7 @@ def extract_and_check(target: CheckTarget) -> CheckResult:
     try:
         with urllib.request.urlopen(request, timeout=DEFAULT_TIMEOUT_SECONDS) as response:
             status_code = response.getcode()
-            final_url = response.geturl()
+            final_url = target.url
             body = response.read()
             response_time_ms = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
             charset = response.headers.get_content_charset() or "utf-8"
@@ -179,7 +181,7 @@ def extract_and_check(target: CheckTarget) -> CheckResult:
             body = exc.read()
             charset = exc.headers.get_content_charset() or "utf-8"
             page_html = body.decode(charset, errors="replace")
-            final_url = exc.geturl() or target.url
+            final_url = target.url
         except Exception:
             page_html = ""
         issues.append(f"HTTP status {status_code}")
