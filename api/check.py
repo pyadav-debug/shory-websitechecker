@@ -1,17 +1,21 @@
-"""Live partner checks for the Vercel dashboard."""
+"""Live page availability checks for the Vercel dashboard."""
 
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler
 import json
 from pathlib import Path
+import time
 import tomllib
+import urllib.error
+import urllib.request
 
-from monitoring.website_health import UAE_TZ, extract_and_check, load_config
+from monitoring.website_health import UAE_TZ, load_config
 
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "monitoring" / "website_health_config.toml"
+CHECK_TIMEOUT_SECONDS = 30
 
 
 def load_upcoming_slots():
@@ -19,27 +23,52 @@ def load_upcoming_slots():
         return max(0, int(tomllib.load(config_file).get("upcoming_slots", 0)))
 
 
+def check_availability(target):
+    """Use a read-only web proxy because Shory blocks Vercel's outgoing request."""
+    started = time.monotonic()
+    proxy_url = f"https://r.jina.ai/{target.url}"
+    request = urllib.request.Request(
+        proxy_url,
+        headers={
+            "User-Agent": "Mozilla/5.0 (compatible; ShoryStatusChecker/1.0)",
+            "Accept": "text/plain",
+        },
+    )
+
+    status_code = None
+    issues = []
+    try:
+        with urllib.request.urlopen(request, timeout=CHECK_TIMEOUT_SECONDS) as response:
+            status_code = response.getcode()
+            response.read(1)
+    except urllib.error.HTTPError as exc:
+        status_code = exc.code
+        issues.append(f"Page check returned HTTP {exc.code}")
+    except urllib.error.URLError as exc:
+        issues.append(f"Page check failed: {getattr(exc, 'reason', exc)}")
+    except Exception as exc:
+        issues.append(f"Page check failed: {exc}")
+
+    available = status_code is not None and 200 <= status_code < 400
+    if not available and not issues:
+        issues.append(f"Page check returned HTTP {status_code}")
+
+    return {
+        "name": target.name,
+        "url": target.url,
+        "ok": available,
+        "status_code": status_code,
+        "final_url": target.url,
+        "response_time_ms": int((time.monotonic() - started) * 1000),
+        "issues": issues,
+    }
+
+
 def result_payload():
     targets = load_config(CONFIG_PATH)
     with ThreadPoolExecutor(max_workers=min(8, len(targets))) as executor:
-        checked_results = list(executor.map(extract_and_check, targets))
+        results = list(executor.map(check_availability, targets))
 
-    results = [
-        {
-            "name": result.target.name,
-            "url": result.target.url,
-            "ok": result.ok,
-            "status_code": result.status_code,
-            "final_url": result.final_url,
-            "response_time_ms": result.response_time_ms,
-            "title": result.title,
-            "h1": result.h1,
-            "issues": result.issues,
-            "has_gtm": result.has_gtm,
-            "has_ga4": result.has_ga4,
-        }
-        for result in checked_results
-    ]
     results.extend(
         {
             "name": "To be added soon",
@@ -49,20 +78,17 @@ def result_payload():
             "status_code": None,
             "final_url": "",
             "response_time_ms": None,
-            "title": "",
-            "h1": "",
             "issues": [],
-            "has_gtm": None,
-            "has_ga4": None,
         }
         for _ in range(load_upcoming_slots())
     )
 
     checked_at = datetime.now(timezone.utc)
+    active_results = [result for result in results if not result.get("pending")]
     return {
         "checked_at_utc": checked_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "checked_at_uae": checked_at.astimezone(UAE_TZ).strftime("%Y-%m-%d %H:%M:%S UAE"),
-        "all_passed": all(result.ok for result in checked_results),
+        "all_passed": all(result["ok"] for result in active_results),
         "results": results,
     }
 
