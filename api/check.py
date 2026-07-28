@@ -10,7 +10,12 @@ import tomllib
 import urllib.error
 import urllib.request
 
-from monitoring.website_health import UAE_TZ, load_config, parse_jina_target_status
+from monitoring.website_health import (
+    UAE_TZ,
+    jina_auth_header,
+    load_config,
+    parse_jina_target_status,
+)
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -52,6 +57,7 @@ def _check_once(target):
         headers={
             "User-Agent": "Mozilla/5.0 (compatible; ShoryStatusChecker/1.0)",
             "Accept": "text/plain",
+            **jina_auth_header(),
         },
     )
 

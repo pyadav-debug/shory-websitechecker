@@ -33,6 +33,7 @@ jobs:
         continue-on-error: true
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          JINA_API_KEY: ${{ secrets.JINA_API_KEY }}
         run: python monitoring/website_health.py monitoring/website_health_config.toml status.json
 
       - name: Publish latest status

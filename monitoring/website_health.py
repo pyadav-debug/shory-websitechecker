@@ -33,6 +33,15 @@ UAE_TZ = timezone(timedelta(hours=4))
 DEFAULT_TIMEOUT_SECONDS = 20
 MAX_CHECK_ATTEMPTS = 3
 CHECK_RETRY_DELAY_SECONDS = 3
+JINA_API_KEY_ENV_VAR = "JINA_API_KEY"
+
+
+def jina_auth_header() -> dict[str, str]:
+    """Authenticated r.jina.ai requests avoid a WAF/tier-based 403 that
+    unauthenticated ones can hit; optional, falls back to today's
+    unauthenticated behavior if the key isn't configured."""
+    api_key = os.environ.get(JINA_API_KEY_ENV_VAR, "").strip()
+    return {"Authorization": f"Bearer {api_key}"} if api_key else {}
 
 
 @dataclass
@@ -204,11 +213,14 @@ def _check_once(target: CheckTarget) -> CheckResult:
     has_ga4 = False
 
     for check_url in check_urls:
+        is_proxy_url = check_url != target.url
         request = urllib.request.Request(
             check_url,
             headers={
                 "User-Agent": "Mozilla/5.0 (compatible; ShoryWebsiteHealthBot/1.0)",
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                # Only ever sent to r.jina.ai, never to the direct target site.
+                **(jina_auth_header() if is_proxy_url else {}),
             },
         )
 
