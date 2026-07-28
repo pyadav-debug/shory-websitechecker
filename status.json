@@ -1,18 +1,24 @@
 {
-  "checked_at_utc": "2026-07-28T12:49:14Z",
-  "checked_at_uae": "2026-07-28 16:49:14 UAE",
+  "checked_at_utc": "2026-07-28T13:14:07Z",
+  "checked_at_uae": "2026-07-28 17:14:07 UAE",
   "all_passed": false,
   "results": [
     {
       "name": "DLD",
       "url": "https://www.shory.com/home-insurance/partner/dld",
-      "ok": true,
-      "status_code": 200,
+      "ok": false,
+      "status_code": 503,
       "final_url": "https://www.shory.com/home-insurance/partner/dld",
-      "response_time_ms": 20544,
+      "response_time_ms": 20316,
       "title": "Dubai Home Insurance from AED 105/year | Compare Online",
       "h1": "",
-      "issues": [],
+      "issues": [
+        "Target site returned HTTP 503",
+        "Unexpected HTTP status 503",
+        "Missing H1",
+        "GTM script not found",
+        "GA4 script not found"
+      ],
       "has_gtm": false,
       "has_ga4": false
     },
@@ -22,7 +28,7 @@
       "ok": false,
       "status_code": 403,
       "final_url": "https://www.shory.com/vehicle-insurance/generate-quotes",
-      "response_time_ms": 20176,
+      "response_time_ms": 20212,
       "title": "",
       "h1": "",
       "issues": [
@@ -42,7 +48,7 @@
       "ok": true,
       "status_code": 200,
       "final_url": "https://www.shory.com/home-insurance/quote/iw66MPEJzNP-knqeS-PkHA/basic-info",
-      "response_time_ms": 20266,
+      "response_time_ms": 20295,
       "title": "Shory General Insurance",
       "h1": "",
       "issues": [],
