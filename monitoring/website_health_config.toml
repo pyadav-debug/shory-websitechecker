@@ -1,34 +1,12 @@
-# Add one table per partner URL.
-# Keep the list small and maintainable: adding a new partner is just copying one
-# of these blocks and changing the values.
-#
-# Required fields:
-# - name: friendly label shown in logs and alerts
-# - url: page to monitor
-#
-# Optional fields:
-# - expected_text: text that should appear somewhere on the page
-# - cta_text: CTA label that should appear in a link or button
-# - allow_status_codes: status codes that count as healthy, default is [200]
+# Add one table per active partner URL.
+# Adding a new partner is just copying the [[urls]] block and changing its values.
+# Reduce upcoming_slots as real partners are added so the dashboard keeps the
+# intended number of rows.
+upcoming_slots = 2
 
 [[urls]]
-name = "Partner 1"
-url = "https://example.com/partner-1"
-expected_text = "Partner 1"
-cta_text = "Learn more"
+name = "DLD"
+url = "https://www.shory.com/home-insurance/partner/dld"
+expected_text = ""
+cta_text = ""
 allow_status_codes = [200]
-
-[[urls]]
-name = "Partner 2"
-url = "https://example.com/partner-2"
-expected_text = "Partner 2"
-cta_text = "Get quote"
-allow_status_codes = [200]
-
-[[urls]]
-name = "Partner 3"
-url = "https://example.com/partner-3"
-expected_text = "Partner 3"
-cta_text = "Contact us"
-allow_status_codes = [200]
-
