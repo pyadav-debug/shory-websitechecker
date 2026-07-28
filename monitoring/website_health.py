@@ -201,6 +201,17 @@ def extract_and_check(target: CheckTarget) -> CheckResult:
         raw_text = normalize_text(" ".join(parser.raw_text_parts))
         interactive_texts = parser.interactive_texts
         lower_html = page_html.lower()
+
+        # Some Shory error pages return a successful proxy response while the
+        # page content clearly reports a 404.
+        soft_404_markers = (
+            "title: page not found",
+            "target url returned error 404",
+        )
+        if any(marker in lower_html for marker in soft_404_markers):
+            status_code = 404
+            issues.append("Page not found")
+
         has_gtm = "googletagmanager.com/gtm.js" in lower_html or "gtm-" in lower_html
         has_ga4 = (
             "googletagmanager.com/gtag/js" in lower_html
