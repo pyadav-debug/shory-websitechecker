@@ -1,29 +1,16 @@
 {
-  "checked_at_utc": "2026-07-31T19:21:11Z",
-  "checked_at_uae": "2026-07-31 23:21:11 UAE",
+  "checked_at_utc": "2026-07-31T21:04:16Z",
+  "checked_at_uae": "2026-08-01 01:04:16 UAE",
   "all_passed": false,
   "results": [
     {
       "name": "DLD",
       "url": "https://www.shory.com/home-insurance/partner/dld",
-      "ok": true,
-      "status_code": 200,
-      "final_url": "https://www.shory.com/home-insurance/partner/dld",
-      "response_time_ms": 23068,
-      "title": "Dubai Home Insurance from AED 105/year | Compare Online",
-      "h1": "",
-      "issues": [],
-      "has_gtm": false,
-      "has_ga4": false
-    },
-    {
-      "name": "Motor Insurance",
-      "url": "https://www.shory.com/vehicle-insurance/generate-quotes",
       "ok": false,
       "status_code": 503,
-      "final_url": "https://www.shory.com/vehicle-insurance/generate-quotes",
-      "response_time_ms": 32427,
-      "title": "Get Instant Online Quotes on Car Insurance | Shory",
+      "final_url": "https://www.shory.com/home-insurance/partner/dld",
+      "response_time_ms": 20352,
+      "title": "Dubai Home Insurance from AED 105/year | Compare Online",
       "h1": "",
       "issues": [
         "Target site returned HTTP 503",
@@ -36,12 +23,25 @@
       "has_ga4": false
     },
     {
+      "name": "Motor Insurance",
+      "url": "https://www.shory.com/vehicle-insurance/generate-quotes",
+      "ok": true,
+      "status_code": 200,
+      "final_url": "https://www.shory.com/vehicle-insurance/generate-quotes",
+      "response_time_ms": 39010,
+      "title": "Get Instant Online Quotes on Car Insurance | Shory",
+      "h1": "",
+      "issues": [],
+      "has_gtm": false,
+      "has_ga4": false
+    },
+    {
       "name": "Home Insurance",
       "url": "https://www.shory.com/home-insurance/quote/iw66MPEJzNP-knqeS-PkHA/basic-info",
       "ok": true,
       "status_code": 200,
       "final_url": "https://www.shory.com/home-insurance/quote/iw66MPEJzNP-knqeS-PkHA/basic-info",
-      "response_time_ms": 31400,
+      "response_time_ms": 30277,
       "title": "Shory General Insurance",
       "h1": "",
       "issues": [],
