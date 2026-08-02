@@ -1,65 +1,44 @@
 {
-  "checked_at_utc": "2026-08-01T22:54:47Z",
-  "checked_at_uae": "2026-08-02 02:54:47 UAE",
-  "all_passed": false,
+  "checked_at_utc": "2026-08-02T02:29:41Z",
+  "checked_at_uae": "2026-08-02 06:29:41 UAE",
+  "all_passed": true,
   "results": [
     {
       "name": "DLD",
       "url": "https://www.shory.com/home-insurance/partner/dld",
-      "ok": false,
-      "status_code": 401,
+      "ok": true,
+      "status_code": 200,
       "final_url": "https://www.shory.com/home-insurance/partner/dld",
-      "response_time_ms": 20174,
-      "title": "",
+      "response_time_ms": 22813,
+      "title": "Dubai Home Insurance from AED 105/year | Compare Online",
       "h1": "",
-      "issues": [
-        "HTTP status 401",
-        "Unexpected HTTP status 401",
-        "Missing page title",
-        "Missing H1",
-        "GTM script not found",
-        "GA4 script not found"
-      ],
+      "issues": [],
       "has_gtm": false,
       "has_ga4": false
     },
     {
       "name": "Motor Insurance",
       "url": "https://www.shory.com/vehicle-insurance/generate-quotes",
-      "ok": false,
-      "status_code": 401,
+      "ok": true,
+      "status_code": 200,
       "final_url": "https://www.shory.com/vehicle-insurance/generate-quotes",
-      "response_time_ms": 20137,
-      "title": "",
+      "response_time_ms": 37733,
+      "title": "Get Instant Online Quotes on Car Insurance | Shory",
       "h1": "",
-      "issues": [
-        "HTTP status 401",
-        "Unexpected HTTP status 401",
-        "Missing page title",
-        "Missing H1",
-        "GTM script not found",
-        "GA4 script not found"
-      ],
+      "issues": [],
       "has_gtm": false,
       "has_ga4": false
     },
     {
       "name": "Home Insurance",
       "url": "https://www.shory.com/home-insurance/quote/iw66MPEJzNP-knqeS-PkHA/basic-info",
-      "ok": false,
-      "status_code": 401,
+      "ok": true,
+      "status_code": 200,
       "final_url": "https://www.shory.com/home-insurance/quote/iw66MPEJzNP-knqeS-PkHA/basic-info",
-      "response_time_ms": 20176,
-      "title": "",
+      "response_time_ms": 37521,
+      "title": "Shory General Insurance",
       "h1": "",
-      "issues": [
-        "HTTP status 401",
-        "Unexpected HTTP status 401",
-        "Missing page title",
-        "Missing H1",
-        "GTM script not found",
-        "GA4 script not found"
-      ],
+      "issues": [],
       "has_gtm": false,
       "has_ga4": false
     }
