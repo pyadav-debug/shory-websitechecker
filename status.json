@@ -1,6 +1,6 @@
 {
-  "checked_at_utc": "2026-08-08T06:43:54Z",
-  "checked_at_uae": "2026-08-08 10:43:54 UAE",
+  "checked_at_utc": "2026-08-08T08:35:39Z",
+  "checked_at_uae": "2026-08-08 12:35:39 UAE",
   "all_passed": true,
   "results": [
     {
@@ -9,7 +9,7 @@
       "ok": true,
       "status_code": 200,
       "final_url": "https://www.shory.com/home-insurance/partner/dld",
-      "response_time_ms": 1557,
+      "response_time_ms": 1255,
       "title": "Dubai Home Insurance from AED 105/year | Compare Online",
       "h1": "Insure your Dubai  home from  AED   105/ year",
       "issues": [],
@@ -22,7 +22,7 @@
       "ok": true,
       "status_code": 200,
       "final_url": "https://www.shory.com/vehicle-insurance/generate-quotes",
-      "response_time_ms": 1794,
+      "response_time_ms": 1661,
       "title": "Get Instant Online Quotes on Car Insurance | Shory",
       "h1": "",
       "issues": [],
@@ -35,7 +35,7 @@
       "ok": true,
       "status_code": 200,
       "final_url": "https://www.shory.com/home-insurance/quote/iw66MPEJzNP-knqeS-PkHA/basic-info",
-      "response_time_ms": 906,
+      "response_time_ms": 778,
       "title": "Shory General Insurance",
       "h1": "",
       "issues": [],
