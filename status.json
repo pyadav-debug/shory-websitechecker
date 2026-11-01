@@ -1,6 +1,6 @@
 {
-  "checked_at_utc": "2026-11-01T12:36:53Z",
-  "checked_at_uae": "2026-11-01 16:36:53 UAE",
+  "checked_at_utc": "2026-11-01T18:44:17Z",
+  "checked_at_uae": "2026-11-01 22:44:17 UAE",
   "all_passed": false,
   "results": [
     {
@@ -9,7 +9,7 @@
       "ok": false,
       "status_code": 403,
       "final_url": "https://www.shory.com/home-insurance/partner/dld",
-      "response_time_ms": 3173,
+      "response_time_ms": 3200,
       "title": "",
       "h1": "",
       "issues": [
@@ -29,7 +29,7 @@
       "ok": false,
       "status_code": 403,
       "final_url": "https://www.shory.com/vehicle-insurance/generate-quotes",
-      "response_time_ms": 3014,
+      "response_time_ms": 3048,
       "title": "",
       "h1": "",
       "issues": [
@@ -49,7 +49,7 @@
       "ok": false,
       "status_code": 403,
       "final_url": "https://www.shory.com/home-insurance/quote/iw66MPEJzNP-knqeS-PkHA/basic-info",
-      "response_time_ms": 3206,
+      "response_time_ms": 3110,
       "title": "",
       "h1": "",
       "issues": [
